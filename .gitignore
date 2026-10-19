@@ -1,0 +1,8 @@
+.pio/
+.vscode/
+*.vcd
+*.log
+__pycache__/
+*.pyc
+test/run_tests
+.DS_Store

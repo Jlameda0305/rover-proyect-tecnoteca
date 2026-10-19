@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1050" width="1600" height="1050">
+<defs>
+  <pattern id="grid_pwr" width="20" height="20" patternUnits="userSpaceOnUse">
+    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#F0F4F8" stroke-width="0.8"/>
+  </pattern>
+  <filter id="shadow2" x="-4%" y="-4%" width="108%" height="108%">
+    <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.12"/>
+  </filter>
+</defs>
+<rect width="1600" height="1050" fill="#FFFFFF"/>
+<rect width="1600" height="1050" fill="url(#grid_pwr)"/>
+<rect x="35" y="35" width="1530" height="980" fill="none" stroke="#C0392B" stroke-width="2.5"/>
+<rect x="55" y="55" width="1490" height="940" fill="none" stroke="#C0392B" stroke-width="1.2"/>
+<line x1="303.33333333333337" y1="35" x2="303.33333333333337" y2="55" stroke="#C0392B" stroke-width="1"/>
+<line x1="303.33333333333337" y1="995" x2="303.33333333333337" y2="1015" stroke="#C0392B" stroke-width="1"/>
+<line x1="551.6666666666667" y1="35" x2="551.6666666666667" y2="55" stroke="#C0392B" stroke-width="1"/>
+<line x1="551.6666666666667" y1="995" x2="551.6666666666667" y2="1015" stroke="#C0392B" stroke-width="1"/>
+<line x1="800.0" y1="35" x2="800.0" y2="55" stroke="#C0392B" stroke-width="1"/>
+<line x1="800.0" y1="995" x2="800.0" y2="1015" stroke="#C0392B" stroke-width="1"/>
+<line x1="1048.3333333333335" y1="35" x2="1048.3333333333335" y2="55" stroke="#C0392B" stroke-width="1"/>
+<line x1="1048.3333333333335" y1="995" x2="1048.3333333333335" y2="1015" stroke="#C0392B" stroke-width="1"/>
+<line x1="1296.6666666666667" y1="35" x2="1296.6666666666667" y2="55" stroke="#C0392B" stroke-width="1"/>
+<line x1="1296.6666666666667" y1="995" x2="1296.6666666666667" y2="1015" stroke="#C0392B" stroke-width="1"/>
+<text x="179.16666666666669" y="49" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">1</text>
+<text x="179.16666666666669" y="1011" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">1</text>
+<text x="427.50000000000006" y="49" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">2</text>
+<text x="427.50000000000006" y="1011" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">2</text>
+<text x="675.8333333333334" y="49" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">3</text>
+<text x="675.8333333333334" y="1011" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">3</text>
+<text x="924.1666666666666" y="49" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">4</text>
+<text x="924.1666666666666" y="1011" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">4</text>
+<text x="1172.5000000000002" y="49" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">5</text>
+<text x="1172.5000000000002" y="1011" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">5</text>
+<text x="1420.8333333333335" y="49" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">6</text>
+<text x="1420.8333333333335" y="1011" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">6</text>
+<line x1="35" y1="243.0" x2="55" y2="243.0" stroke="#C0392B" stroke-width="1"/>
+<line x1="1545" y1="243.0" x2="1565" y2="243.0" stroke="#C0392B" stroke-width="1"/>
+<line x1="35" y1="431.0" x2="55" y2="431.0" stroke="#C0392B" stroke-width="1"/>
+<line x1="1545" y1="431.0" x2="1565" y2="431.0" stroke="#C0392B" stroke-width="1"/>
+<line x1="35" y1="619.0" x2="55" y2="619.0" stroke="#C0392B" stroke-width="1"/>
+<line x1="1545" y1="619.0" x2="1565" y2="619.0" stroke="#C0392B" stroke-width="1"/>
+<line x1="35" y1="807.0" x2="55" y2="807.0" stroke="#C0392B" stroke-width="1"/>
+<line x1="1545" y1="807.0" x2="1565" y2="807.0" stroke="#C0392B" stroke-width="1"/>
+<text x="45" y="154.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">A</text>
+<text x="1555" y="154.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">A</text>
+<text x="45" y="342.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">B</text>
+<text x="1555" y="342.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">B</text>
+<text x="45" y="530.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">C</text>
+<text x="1555" y="530.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">C</text>
+<text x="45" y="718.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">D</text>
+<text x="1555" y="718.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">D</text>
+<text x="45" y="906.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">E</text>
+<text x="1555" y="906.0" fill="#C0392B" font-size="13" font-weight="bold" text-anchor="middle">E</text>
+<text x="70" y="982" fill="#7F8C8D" font-size="13" font-weight="bold">Mars Rover Project &#8226; Power Distribution Architecture (Battery, UBEC &amp; Regulators)</text>
+<rect x="1075" y="915" width="470" height="80" fill="#FFFFFF" stroke="#C0392B" stroke-width="1.5"/>
+<line x1="1075" y1="945" x2="1545" y2="945" stroke="#C0392B" stroke-width="1"/>
+<line x1="1075" y1="970" x2="1545" y2="970" stroke="#C0392B" stroke-width="1"/>
+<line x1="1395" y1="945" x2="1395" y2="995" stroke="#C0392B" stroke-width="1"/>
+<text x="1087" y="935" fill="#C0392B" font-size="13" font-weight="bold">Title: <tspan fill="#2C3E50" font-weight="normal">Mars Rover - Esquema de Alimentación y Distribución</tspan></text>
+<text x="1087" y="961" fill="#C0392B" font-size="12" font-weight="bold">Date: <tspan fill="#34495E" font-weight="normal">15/10/2026</tspan></text>
+<text x="1405" y="961" fill="#C0392B" font-size="12" font-weight="bold">Sheet: <tspan fill="#34495E" font-weight="normal">1/1</tspan></text>
+<text x="1087" y="986" fill="#C0392B" font-size="12" font-weight="bold">Topology: <tspan fill="#34495E" font-weight="normal">Doble Riel (7.4V Potencia / 5V Lógica &amp; Servos)</tspan></text>
+<text x="1405" y="986" fill="#C0392B" font-size="12" font-weight="bold">Rev: <tspan fill="#34495E" font-weight="normal">1.0</tspan></text>
+<rect x="85" y="100" width="250" height="115" rx="8" fill="#FFFFFF" stroke="#E67E22" stroke-width="2.2" filter="url(#shadow2)"/>
+<rect x="85" y="100" width="250" height="28" rx="4" fill="#E67E22"/>
+<text x="210.0" y="119" fill="#FFFFFF" font-size="13" font-weight="bold" text-anchor="middle">B1 : BATERÍA PRINCIPAL (LiPo 2S)</text>
+<text x="99" y="152" fill="#E74C3C" font-size="12" font-weight="bold">+ POSITIVO (+7.4V / 8.4V MÁX)</text>
+<text x="99" y="180" fill="#111111" font-size="12" font-weight="bold">- NEGATIVO (GND MASA COMÚN)</text>
+<text x="99" y="202" fill="#7F8C8D" font-size="11">Capacidad: 2200 - 5000 mAh (25C+)</text>
+<rect x="160" y="240" width="100" height="36" rx="4" fill="#FFFFFF" stroke="#E74C3C" stroke-width="2"/>
+<text x="210.0" y="263" fill="#E74C3C" font-size="12" font-weight="bold" text-anchor="middle">FUSIBLE : 20A</text>
+<rect x="160" y="300" width="100" height="36" rx="4" fill="#FFFFFF" stroke="#34495E" stroke-width="2"/>
+<text x="210.0" y="323" fill="#2C3E50" font-size="12" font-weight="bold" text-anchor="middle">SW1 : POWER</text>
+<line x1="145" y1="155" x2="210.0" y2="155" stroke="#E74C3C" stroke-width="3"/>
+<line x1="210.0" y1="155" x2="210.0" y2="240" stroke="#E74C3C" stroke-width="3"/>
+<line x1="210.0" y1="276" x2="210.0" y2="300" stroke="#E74C3C" stroke-width="3"/>
+<rect x="85" y="380" width="250" height="135" rx="8" fill="#FFFFFF" stroke="#27AE60" stroke-width="2.2" filter="url(#shadow2)"/>
+<rect x="85" y="380" width="250" height="28" rx="4" fill="#27AE60"/>
+<text x="210.0" y="399" fill="#FFFFFF" font-size="13" font-weight="bold" text-anchor="middle">U2 : UBEC / STEP-DOWN DC-DC</text>
+<text x="99" y="435" fill="#E74C3C" font-size="12" font-weight="bold">VIN (+) : 7.4V Entrada</text>
+<text x="99" y="465" fill="#111111" font-size="12" font-weight="bold">GND (-) : Tierra Común</text>
+<text x="99" y="495" fill="#F39C12" font-size="12" font-weight="bold">VOUT (+) : 5.0V / 5A REGULADO</text>
+<line x1="210.0" y1="336" x2="210.0" y2="355" stroke="#E74C3C" stroke-width="3"/>
+<circle cx="210.0" cy="355" r="4.5" fill="#E74C3C"/>
+<line x1="210.0" y1="355" x2="440" y2="355" stroke="#E74C3C" stroke-width="3.5"/>
+<path d="M 210.0 355 L 60 355 L 60 435 L 85 435" fill="none" stroke="#E74C3C" stroke-width="2.5"/>
+<circle cx="85" cy="435" r="4" fill="#E74C3C"/>
+<line x1="440" y1="95" x2="440" y2="355" stroke="#E74C3C" stroke-width="4"/>
+<text x="440" y="82" fill="#E74C3C" font-size="12" font-weight="bold" text-anchor="middle">RIEL DE ALTA POTENCIA (+7.4V)</text>
+<line x1="335" y1="495" x2="550" y2="495" stroke="#F39C12" stroke-width="3.5"/>
+<circle cx="550" cy="495" r="4.5" fill="#F39C12"/>
+<line x1="550" y1="440" x2="550" y2="800" stroke="#F39C12" stroke-width="4"/>
+<text x="550" y="422" fill="#F39C12" font-size="11.5" font-weight="bold" text-anchor="middle">RIEL REGULADO +5.0V (SERVOS Y ESP32)</text>
+<line x1="1450" y1="85" x2="1450" y2="880" stroke="#111111" stroke-width="4.5"/>
+<text x="1450" y="72" fill="#111111" font-size="12" font-weight="bold" text-anchor="middle">BUS CENTRAL DE MASA COMÚN (GND)</text>
+<path d="M 335 175 L 390 175 L 390 880 L 1450 880" fill="none" stroke="#111111" stroke-width="3.5"/>
+<circle cx="1450" cy="880" r="5" fill="#111111"/>
+<path d="M 335 465 L 390 465" fill="none" stroke="#111111" stroke-width="2.5"/>
+<circle cx="390" cy="465" r="4" fill="#111111"/>
+<rect x="670" y="100" width="540" height="100" rx="8" fill="#FFFFFF" stroke="#2980B9" stroke-width="2" filter="url(#shadow2)"/>
+<text x="686" y="128" fill="#2980B9" font-size="13" font-weight="bold">CARGA 1 : ESC TRACCIÓN IZQUIERDA (3 Motores DC en Paralelo)</text>
+<text x="686" y="158" fill="#E74C3C" font-size="12">&#8226; Alimentación Potencia: +7.4V Directo de Batería (Hasta 20A pico)</text>
+<text x="686" y="182" fill="#111111" font-size="12">&#8226; Retorno de Corriente: GND Común hacia el Bus Central</text>
+<rect x="670" y="240" width="540" height="100" rx="8" fill="#FFFFFF" stroke="#D35400" stroke-width="2" filter="url(#shadow2)"/>
+<text x="686" y="268" fill="#D35400" font-size="13" font-weight="bold">CARGA 2 : ESC TRACCIÓN DERECHA (3 Motores DC en Paralelo)</text>
+<text x="686" y="298" fill="#E74C3C" font-size="12">&#8226; Alimentación Potencia: +7.4V Directo de Batería (Hasta 20A pico)</text>
+<text x="686" y="322" fill="#111111" font-size="12">&#8226; Retorno de Corriente: GND Común hacia el Bus Central</text>
+<line x1="440" y1="154" x2="670" y2="154" stroke="#E74C3C" stroke-width="3"/>
+<circle cx="440" cy="154" r="4.5" fill="#E74C3C"/>
+<line x1="440" y1="294" x2="670" y2="294" stroke="#E74C3C" stroke-width="3"/>
+<circle cx="440" cy="294" r="4.5" fill="#E74C3C"/>
+<line x1="1210" y1="178" x2="1450" y2="178" stroke="#111111" stroke-width="3"/>
+<circle cx="1450" cy="178" r="4.5" fill="#111111"/>
+<line x1="1210" y1="318" x2="1450" y2="318" stroke="#111111" stroke-width="3"/>
+<circle cx="1450" cy="318" r="4.5" fill="#111111"/>
+<rect x="670" y="440" width="540" height="145" rx="8" fill="#FFFFFF" stroke="#27AE60" stroke-width="2" filter="url(#shadow2)"/>
+<text x="686" y="468" fill="#27AE60" font-size="13" font-weight="bold">CARGA 3 : 4x SERVOMOTORES DE DIRECCIÓN (MG996R)</text>
+<text x="686" y="498" fill="#F39C12" font-size="12">&#8226; Alimentación V+: 5.0V Regulada desde UBEC (Consumo ~2.5A pico)</text>
+<text x="686" y="525" fill="#111111" font-size="12">&#8226; Retorno V-: Conexión rígida a GND Común</text>
+<text x="686" y="555" fill="#7F8C8D" font-size="11">Protección: El UBEC filtra los picos inductivos de los servos aislando la lógica</text>
+<line x1="550" y1="494" x2="670" y2="494" stroke="#F39C12" stroke-width="3"/>
+<circle cx="550" cy="494" r="4.5" fill="#F39C12"/>
+<line x1="1210" y1="521" x2="1450" y2="521" stroke="#111111" stroke-width="3"/>
+<circle cx="1450" cy="521" r="4.5" fill="#111111"/>
+<rect x="670" y="635" width="540" height="145" rx="8" fill="#FFFFFF" stroke="#8E44AD" stroke-width="2" filter="url(#shadow2)"/>
+<text x="686" y="663" fill="#8E44AD" font-size="13" font-weight="bold">CARGA 4 : ESP32 DEVKIT-C V4 (LÓGICA Y COMUNICACIONES)</text>
+<text x="686" y="693" fill="#F39C12" font-size="12">&#8226; Entrada de Alimentación: Pin "5V / VIN" (Consumo ~180 - 260 mA)</text>
+<text x="686" y="720" fill="#111111" font-size="12">&#8226; Referencia: Pin "GND" unido rígidamente al Bus de Masa Común</text>
+<text x="686" y="750" fill="#7F8C8D" font-size="11">Filtro interno: El LDO onboard del ESP32 baja los 5V a 3.3V limpios para el SoC</text>
+<line x1="550" y1="689" x2="670" y2="689" stroke="#F39C12" stroke-width="3"/>
+<circle cx="550" cy="689" r="4.5" fill="#F39C12"/>
+<line x1="1210" y1="716" x2="1450" y2="716" stroke="#111111" stroke-width="3"/>
+<circle cx="1450" cy="716" r="4.5" fill="#111111"/>
+<rect x="85" y="660" width="410" height="240" rx="6" fill="#FFFFFF" stroke="#BDC3C7" stroke-width="1.5" filter="url(#shadow2)"/>
+<rect x="85" y="660" width="410" height="28" rx="4" fill="#34495E"/>
+<text x="99" y="679" fill="#FFFFFF" font-size="12" font-weight="bold">REGLAS CRÍTICAS DE ENERGÍA Y CABLEADO</text>
+<text x="97" y="710" fill="#C0392B" font-size="10.5" font-weight="bold">1. Doble Riel: <tspan fill="#2C3E50" font-weight="normal">La batería alimenta directo a los ESCs (7.4V) y el</tspan></text>
+<text x="97" y="732" fill="#C0392B" font-size="10.5" font-weight="bold"> <tspan fill="#2C3E50" font-weight="normal">UBEC alimenta exclusivamente a servos y ESP32 (5.0V).</tspan></text>
+<text x="97" y="754" fill="#C0392B" font-size="10.5" font-weight="bold">2. Calibre de Cables: <tspan fill="#2C3E50" font-weight="normal">Usa cable grueso (14-16 AWG) para batería y ESCs.</tspan></text>
+<text x="97" y="776" fill="#C0392B" font-size="10.5" font-weight="bold"> <tspan fill="#2C3E50" font-weight="normal">Usa cable standard (22-24 AWG) para servos y ESP32.</tspan></text>
+<text x="97" y="798" fill="#C0392B" font-size="10.5" font-weight="bold">3. Masa Única (Estrella): <tspan fill="#2C3E50" font-weight="normal">Une todos los cables negativos en un punto</tspan></text>
+<text x="97" y="820" fill="#C0392B" font-size="10.5" font-weight="bold"> <tspan fill="#2C3E50" font-weight="normal">central para evitar lazos de tierra (ground loops).</tspan></text>
+<text x="97" y="842" fill="#C0392B" font-size="10.5" font-weight="bold">4. Jamás alimentar servos <tspan fill="#2C3E50" font-weight="normal">desde el pin 3.3V ni 5V del ESP32;</tspan></text>
+<text x="97" y="864" fill="#C0392B" font-size="10.5" font-weight="bold"> <tspan fill="#2C3E50" font-weight="normal">provocaría reinicios continuos (brownouts).</tspan></text>
+</svg>

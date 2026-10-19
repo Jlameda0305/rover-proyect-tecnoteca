@@ -1,0 +1,2 @@
+# Wokwi Web Library Dependencies
+WebSockets

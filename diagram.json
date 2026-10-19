@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "author": "Mars Rover Project (L298N Skid-Steering)",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_pwm_l",
+      "top": -170,
+      "left": 260,
+      "attrs": { "color": "blue", "label": "ENA (Left PWM)" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_fwd_l",
+      "top": -110,
+      "left": 260,
+      "attrs": { "color": "green", "label": "IN1 (Left FWD)" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_rev_l",
+      "top": -50,
+      "left": 260,
+      "attrs": { "color": "red", "label": "IN2 (Left REV)" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_fwd_r",
+      "top": 50,
+      "left": 260,
+      "attrs": { "color": "green", "label": "IN3 (Right FWD)" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_rev_r",
+      "top": 110,
+      "left": 260,
+      "attrs": { "color": "red", "label": "IN4 (Right REV)" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_pwm_r",
+      "top": 170,
+      "left": 260,
+      "attrs": { "color": "orange", "label": "ENB (Right PWM)" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "green", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "yellow", [] ],
+
+    [ "esp:17", "led_pwm_l:A", "blue", [ "h20", "v-140" ] ],
+    [ "esp:GND.1", "led_pwm_l:C", "black", [ "h15", "v-120" ] ],
+
+    [ "esp:18", "led_fwd_l:A", "green", [ "h30", "v-80" ] ],
+    [ "esp:GND.1", "led_fwd_l:C", "black", [ "h20", "v-60" ] ],
+
+    [ "esp:19", "led_rev_l:A", "red", [ "h40", "v-30" ] ],
+    [ "esp:GND.1", "led_rev_l:C", "black", [ "h25", "v-10" ] ],
+
+    [ "esp:21", "led_fwd_r:A", "green", [ "h40", "v30" ] ],
+    [ "esp:GND.2", "led_fwd_r:C", "black", [ "h25", "v10" ] ],
+
+    [ "esp:22", "led_rev_r:A", "red", [ "h30", "v80" ] ],
+    [ "esp:GND.2", "led_rev_r:C", "black", [ "h20", "v60" ] ],
+
+    [ "esp:13", "led_pwm_r:A", "orange", [ "h20", "v140" ] ],
+    [ "esp:GND.2", "led_pwm_r:C", "black", [ "h15", "v120" ] ]
+  ],
+  "serialMonitor": {
+    "display": "always",
+    "newline": "lf"
+  },
+  "dependencies": {}
+}
