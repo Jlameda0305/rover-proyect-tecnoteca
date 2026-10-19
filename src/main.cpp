@@ -1,19 +1,38 @@
 /*
- * Simplified Rover RC Firmware
- * Controlled exclusively as an RC car via WiFi Access Point ("Rover") using WebSockets.
- * Hardware features such as arm, camera head, LoRa and RMT receiver are disabled.
- */
+* Code for controlling my Rover. Controlled using generic 6 channel RC Transmitter, Websocket or Lora.
+* 
+* On the transmitter I use two joysticks for channels 1-4 for, and two switches for channel 5-6.
+* Joysticks are used both for steering the Rover and for moving each axis of the arm.
+* When switch1 is:
+*   -LOW: joysticks are used for driving the rover
+*   -MID: Wheels will be set correct angles for the rover to be able to rotate on the spot
+*         by running each side of wheels in opposite direction. The direction is descided by the steer joystick.
+*   -HIGH: Arm mode, the two joysticks are used for moving axis 1-4 on the arm. Switch2 is used to switch beween moving
+*          axis 1-4 and axis 5-6 (the gripper). This will be changed in the future, steering each axis manually is not really a good way, inverse kinematics is TODO.
+*/
 
 #include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/semphr.h>
-#include <esp_log.h>
 #include "rover_config.h"
+#include <ESP32Servo.h>
+#include "Wire.h"
+#include "rc_receiver_rmt.h"
 #include "wifi_controller.h"
+#include "lora_controller.h"
+#include "switch_checker.h"
+#include "arm.h"
+#include "gyro_accel_sensor.h"
+#include "rover_servo.h"
+#include "rover_head.h"
+#include "rover_settings_switch.h"
 #include "rover_driving.h"
-#include "rover_kinematics.h"
+
+#include <SPI.h>
+#include <LoRa.h>
 
 #define DEBUG
+
+#define ACCEL_READ_PERIOD_MS 300
+#define PING_WS_ITERATIONS (1000 / ACCEL_READ_PERIOD_MS)
 
 #ifdef DEBUG
 #define LOG Serial.print
@@ -25,176 +44,246 @@
 #define LOGLN(msg)
 #endif
 
+static void handle_wifi_controller_status(WifiControllerStatus status);
+static void handle_lora_controller_status(LoraControllerStatus status);
+
+static void handle_robot_arm_servo(ArmAxis arm_axis, uint16_t channel);
+static uint16_t get_controller_channel_value(uint8_t channel);
+static uint16_t filter_signal(uint16_t* signals);
+static void on_accel_data(GyroAccelData* data);
+static void handle_arm_mode_changed(ArmMode mode);
+static void handle_controller_disconnected(uint16_t last_sampled_signal);
+static void handle_rover_mode_changed(RoverMode mode);
+
 static const char* TAG = "ROVER_MAIN";
 
 static uint16_t rc_values[RC_NUM_CHANNELS][RC_FILTER_SAMPLES];
 static uint8_t rc_value_index = 0;
 
 static RoverMode current_rover_mode = DRIVE_TURN_NORMAL;
+static ArmMode current_arm_mode = ARM_MODE_MOVE;
+
 static bool wifi_control_enabled = false;
+static bool lora_control_enabled = false;
 
-static void handle_wifi_controller_status(WifiControllerStatus status);
-static void handle_controller_disconnected(uint16_t last_sampled_signal);
-static uint16_t filter_signal(uint16_t* signals);
-
-static uint32_t last_telemetry_ms = 0;
-static uint16_t serial_steer = RC_CENTER;
-static uint16_t serial_throttle = RC_CENTER;
-static RoverMode serial_mode = DRIVE_TURN_NORMAL;
-static bool serial_override = false;
-
-static void process_serial_commands() {
-    while (Serial.available()) {
-        String line = Serial.readStringUntil('\n');
-        line.trim();
-        if (line.length() == 0) continue;
-
-        char c = toupper(line[0]);
-        if (c == 'F') { // Forward
-            serial_override = true;
-            serial_throttle = 1800;
-            serial_steer = 1500;
-            serial_mode = DRIVE_TURN_NORMAL;
-            Serial.println("[CMD_ACK] FORWARD: Throttle 1800 us, Steer 1500 us");
-        } else if (c == 'B') { // Backward
-            serial_override = true;
-            serial_throttle = 1200;
-            serial_steer = 1500;
-            serial_mode = DRIVE_TURN_NORMAL;
-            Serial.println("[CMD_ACK] BACKWARD: Throttle 1200 us, Steer 1500 us");
-        } else if (c == 'L') { // Left
-            serial_override = true;
-            serial_throttle = 1600;
-            serial_steer = 1200;
-            serial_mode = DRIVE_TURN_NORMAL;
-            Serial.println("[CMD_ACK] TURN LEFT: Throttle 1600 us, Steer 1200 us");
-        } else if (c == 'R') { // Right
-            serial_override = true;
-            serial_throttle = 1600;
-            serial_steer = 1800;
-            serial_mode = DRIVE_TURN_NORMAL;
-            Serial.println("[CMD_ACK] TURN RIGHT: Throttle 1600 us, Steer 1800 us");
-        } else if (c == 'S') { // Stop
-            serial_override = false;
-            serial_throttle = 1500;
-            serial_steer = 1500;
-            serial_mode = DRIVE_TURN_NORMAL;
-            Serial.println("[CMD_ACK] STOP / NEUTRAL: Throttle 1500 us, Steer 1500 us");
-        } else if (c == 'P') { // Pivot / Spin
-            serial_override = true;
-            serial_throttle = 1500;
-            serial_steer = 1800;
-            serial_mode = DRIVE_TURN_SPIN;
-            Serial.println("[CMD_ACK] SPIN 360: Mode SPIN, Steer 1800 us");
-        } else if (c == 'T') { // Run Self-Test
-            Serial.println("[CMD_ACK] RUNNING SELF-TEST...");
-            run_rover_kinematics_self_test();
-        } else if (line.startsWith("CMD:")) {
-            int comma1 = line.indexOf(',');
-            int comma2 = line.indexOf(',', comma1 + 1);
-            if (comma1 > 0 && comma2 > 0) {
-                serial_override = true;
-                serial_steer = line.substring(4, comma1).toInt();
-                serial_throttle = line.substring(comma1 + 1, comma2).toInt();
-                int m = line.substring(comma2 + 1).toInt();
-                serial_mode = (m == 1) ? DRIVE_TURN_SPIN : DRIVE_TURN_NORMAL;
-                Serial.printf("[CMD_ACK] CUSTOM: Steer=%u us, Throttle=%u us, Mode=%s\n",
-                              serial_steer, serial_throttle,
-                              (serial_mode == DRIVE_TURN_SPIN ? "SPIN" : "NORMAL"));
-            }
-        }
-    }
-}
+static RoverSwitchState startup_settings;
+static bool wifi_enabled = false;
 
 void setup() {
     Serial.begin(SERIAL_PORT_SPEED);
-    delay(500);
-    Serial.println();
-    Serial.println("=================================");
-    Serial.println(" Mars Rover Firmware (Wokwi Sim)");
-    Serial.println(" Mode: Standalone RC / WebSockets");
-    Serial.println(" Commands: F, B, L, R, S, P");
-    Serial.println("=================================");
+    Wire.begin(ROVER_SDA_PIN, ROVER_SCL_PIN);
+    Wire.setClock(400000);
+    xSemaphoreHandle i2cSemaphoreHandle = xSemaphoreCreateBinary();
+    assert(i2cSemaphoreHandle != NULL);
+    xSemaphoreGive(i2cSemaphoreHandle);
 
-    rover_driving_init();
+    rover_settings_switch_init();
+    gyro_accel_init(i2cSemaphoreHandle, true, on_accel_data, ACCEL_READ_PERIOD_MS);
+    rover_servo_init(i2cSemaphoreHandle);
     handle_controller_disconnected(0);
 
-    // Run built-in kinematics verification
-    run_rover_kinematics_self_test();
+    rc_receiver_rmt_init();
 
-    wifi_controller_init("Rover", NULL, WIFI_CONTROLLER_AP);
-    wifi_controller_register_connection_callback(&handle_wifi_controller_status);
+    startup_settings = rover_settings_switch_get_state();
+    if (startup_settings == ROVER_SWITCH_STATE_STATION_LORA) {
+      ESP_LOGD(TAG, "Mode: ROVER_SWITCH_STATE_STATION_LORA\n");
+      wifi_controller_init("RoverController", NULL, WIFI_CONTROLLER_STATION);
+      wifi_enabled = true;
+    } else if (startup_settings == ROVER_SWITCH_STATE_AP) {
+      ESP_LOGD(TAG, "Mode: ROVER_SWITCH_STATE_AP\n");
+      wifi_controller_init("Rover", NULL, WIFI_CONTROLLER_AP);
+      wifi_enabled = true;
+    } else {
+      wifi_enabled = false;
+      ESP_LOGD(TAG, "Mode: ROVER_SWITCH_STATE_LORA_ONLY\n");
+    }
 
-    Serial.printf("Rover Ready (Simplified RC)! Core: %d\n", xPortGetCoreID());
+    if (wifi_enabled) {
+      wifi_controller_register_connection_callback(&handle_wifi_controller_status);
+    }
+
+    lora_controller_init();
+    lora_controller_register_connection_callback(&handle_lora_controller_status);
+
+    init_switch_checker(RC_LOW, RC_ROVER_MODE_ROVER_CHANNEL, RC_ARM_MODE_ROVER_CHANNEL, &handle_rover_mode_changed, &handle_arm_mode_changed, wifi_enabled);
+
+    
+    rover_driving_init();
+    arm_init();
+    rover_head_init();
+
+    LOGF("Rover Ready! Core: %d", xPortGetCoreID());
 }
 
 void loop() {
-    process_serial_commands();
 
-    uint16_t steer_raw;
-    uint16_t motor_raw;
-    RoverMode mode;
+  if (rover_settings_switch_get_state() != startup_settings) {
+    esp_restart(); // Might do graceful WiFi restart and reconfigure later, but for now this will do.
+  }
 
-    if (serial_override) {
-        steer_raw = serial_steer;
-        motor_raw = serial_throttle;
-        mode = serial_mode;
-    } else {
-        steer_raw = wifi_controller_get_ch_val(RC_STEER_CHANNEL);
-        motor_raw = wifi_controller_get_ch_val(RC_MOTOR_CHANNEL);
-        uint16_t mode_raw  = wifi_controller_get_ch_val(RC_ROVER_MODE_ROVER_CHANNEL);
-        mode = (mode_raw >= 1400 && mode_raw <= 1600) ? DRIVE_TURN_SPIN : DRIVE_TURN_NORMAL;
+  switch (current_rover_mode) {
+    case DRIVE_TURN_NORMAL:
+    case DRIVE_TURN_SPIN:
+    {
+      uint16_t motor_signal = RC_CENTER;
+
+      rc_values[RC_STEER_CHANNEL][rc_value_index] = get_controller_channel_value(RC_STEER_CHANNEL);
+      rc_values[RC_MOTOR_CHANNEL][rc_value_index] = get_controller_channel_value(RC_MOTOR_CHANNEL);
+      rc_values[RC_HEAD_PITCH_CHANNEL][rc_value_index] = get_controller_channel_value(RC_HEAD_PITCH_CHANNEL);
+      rc_values[RC_HEAD_YAW_CHANNEL][rc_value_index] = get_controller_channel_value(RC_HEAD_YAW_CHANNEL);
+
+      if (current_rover_mode == DRIVE_TURN_NORMAL) {
+        motor_signal = filter_signal(rc_values[RC_MOTOR_CHANNEL]);
+      } else if (current_rover_mode == DRIVE_TURN_SPIN) {
+        motor_signal = filter_signal(rc_values[RC_STEER_CHANNEL]);
+      }
+
+      rover_driving_move(motor_signal);
+      rover_driving_steer(filter_signal(rc_values[RC_STEER_CHANNEL]));
+
+      uint16_t yawUs = filter_signal(rc_values[RC_HEAD_YAW_CHANNEL]);
+      uint16_t pitchUs = filter_signal(rc_values[RC_HEAD_PITCH_CHANNEL]);
+
+      rover_head_yaw(yawUs);
+      rover_head_pitch(pitchUs);
+      break;
     }
+    case ROBOT_ARM:
+      if (current_arm_mode == ARM_MODE_MOVE) {
+        rc_values[RC_SERVO1_CHANNEL][rc_value_index] = get_controller_channel_value(RC_SERVO1_CHANNEL);
+        rc_values[RC_SERVO2_CHANNEL][rc_value_index] = get_controller_channel_value(RC_SERVO2_CHANNEL);
+        rc_values[RC_SERVO3_CHANNEL][rc_value_index] = get_controller_channel_value(RC_SERVO3_CHANNEL);
+        rc_values[RC_SERVO4_CHANNEL][rc_value_index] = get_controller_channel_value(RC_SERVO4_CHANNEL);
 
-    rc_values[RC_STEER_CHANNEL][rc_value_index] = steer_raw;
-    rc_values[RC_MOTOR_CHANNEL][rc_value_index] = motor_raw;
+        handle_robot_arm_servo(ARM_AXIS_1, RC_SERVO1_CHANNEL);
+        handle_robot_arm_servo(ARM_AXIS_2, RC_SERVO2_CHANNEL);
+        handle_robot_arm_servo(ARM_AXIS_3, RC_SERVO3_CHANNEL);
+        handle_robot_arm_servo(ARM_AXIS_4, RC_SERVO4_CHANNEL);
+      } else if (current_arm_mode == ARM_MODE_GRIPPER) {
+        rc_values[RC_SERVO5_CHANNEL][rc_value_index] = get_controller_channel_value(RC_SERVO5_CHANNEL);
+        rc_values[RC_SERVO6_CHANNEL][rc_value_index] = get_controller_channel_value(RC_SERVO6_CHANNEL);
 
-    if (mode != current_rover_mode) {
-        current_rover_mode = mode;
-        rover_driving_set_drive_mode(current_rover_mode);
-    }
+        handle_robot_arm_servo(ARM_AXIS_5, RC_SERVO5_CHANNEL);
+        handle_robot_arm_servo(ARM_AXIS_6, RC_SERVO6_CHANNEL);
+      }
+      break;
+  }
+  rc_value_index = (rc_value_index + 1) % RC_FILTER_SAMPLES;
 
-    uint16_t motor_signal = filter_signal(rc_values[RC_MOTOR_CHANNEL]);
-    uint16_t steer_signal = filter_signal(rc_values[RC_STEER_CHANNEL]);
-
-    // Differential Skid-Steering: pass both throttle and steer signals
-    rover_driving_move(motor_signal, steer_signal);
-
-    uint32_t now = millis();
-    if (now - last_telemetry_ms >= 1000) {
-        last_telemetry_ms = now;
-        Serial.printf("[TELEMETRY] Mode: %s | Motor: %u us | Steer: %u us\n",
-                      (current_rover_mode == DRIVE_TURN_SPIN ? "SPIN" : "NORMAL"),
-                      motor_signal,
-                      steer_signal);
-    }
-
-    rc_value_index = (rc_value_index + 1) % RC_FILTER_SAMPLES;
-    vTaskDelay(pdMS_TO_TICKS(20));
+  vTaskDelay(pdMS_TO_TICKS(20));
 }
 
-static void handle_wifi_controller_status(WifiControllerStatus status) {
-    LOGF("Wifi Controller status: %d\n", status);
-    if (status != WIFI_CONTROLLER_CONNECTED) {
-        handle_controller_disconnected(0);
-        wifi_control_enabled = false;
-    } else {
-        wifi_control_enabled = true;
-    }
+static void handle_robot_arm_servo(ArmAxis arm_axis, uint16_t channel) {
+  
+  uint16_t speed;
+  uint16_t signal = filter_signal(rc_values[channel]);
+  if (signal < RC_CENTER && signal > 0) {
+    signal = 2 * RC_CENTER - signal;
+    speed = map(signal, RC_CENTER, RC_HIGH, ARM_MIN_SPEED, ARM_MAX_SPEED);
+    arm_move_axis_us(arm_axis, RC_LOW, speed);
+  } else if (signal > RC_CENTER) {
+    speed = map(signal, RC_CENTER, RC_HIGH, ARM_MIN_SPEED, ARM_MAX_SPEED);
+    arm_move_axis_us(arm_axis, RC_HIGH, speed);
+  } else {
+    arm_pause(arm_axis);
+  }
 }
 
-static void handle_controller_disconnected(uint16_t last_sampled_signal) {
-    // Set all RC values to mid position if signal is 0 (controller disconnected)
-    if (last_sampled_signal == 0) {
-        for (uint8_t channel = 0; channel < RC_NUM_CHANNELS; channel++) {
-            for (uint8_t sample = 0; sample < RC_FILTER_SAMPLES; sample++) {
-                rc_values[channel][sample] = RC_CENTER;
-            }
-        }
-    }
+static void handle_wifi_controller_status(WifiControllerStatus status)
+{
+  LOGF("Wifi Controller status: %d\n", status);
+  if (status != WIFI_CONTROLLER_CONNECTED) {
+    handle_controller_disconnected(0);
+    wifi_control_enabled = false;
+  } else {
+    wifi_control_enabled = true;
+  }
+}
+
+static void handle_lora_controller_status(LoraControllerStatus status)
+{
+  LOGF("Lora Controller status: %d\n", status);
+  if (status != LORA_CONTROLLER_CONNECTED) {
+    handle_controller_disconnected(0);
+    lora_control_enabled = false;
+  } else {
+    lora_control_enabled = true;
+  }
+}
+
+static uint16_t get_controller_channel_value(uint8_t channel)
+{
+  uint16_t channel_value = 0;
+
+  if (lora_control_enabled) {
+    channel_value = lora_controller_get_val(channel);
+  } else if (wifi_control_enabled) {
+    channel_value = wifi_controller_get_val(channel);
+  } else {
+    channel_value = rc_receiver_rmt_get_val(channel);
+  }
+
+  if (channel_value == 0) {
+    channel_value = RC_CENTER;
+  }
+
+  return channel_value;
 }
 
 static uint16_t filter_signal(uint16_t* signals) {
-    return filter_rc_signal(signals, RC_FILTER_SAMPLES);
+  uint32_t signal = 0;
+  for (uint8_t i = 0; i < RC_FILTER_SAMPLES; i++) {
+    signal += signals[i];
+  }
+  signal = signal / RC_FILTER_SAMPLES;
+  
+  if (signal <= 800) return RC_CENTER; // If we are unlucky in timing when RC controller disconnect we might get some random low signal
+  if (signal > 800 && signal < 1010) return RC_LOW;
+  if (signal > 1990) return RC_HIGH;
+  if (signal > 1480 && signal < 1520) return RC_CENTER;
+  return signal;;
 }
 
+static void handle_rover_mode_changed(RoverMode mode) {
+  LOGF("ROVER MODE CHANGED: %d\n", mode);
+  current_rover_mode = mode;
+  rover_driving_set_drive_mode(mode);
+}
+
+static void handle_arm_mode_changed(ArmMode mode) {
+  LOGF("ARM MODE CHANGED: %d\n", mode);
+  current_arm_mode = mode;
+}
+
+static void handle_controller_disconnected(uint16_t last_sampled_signal) {
+  // Set all RC values to mid position if signal is 0 (controller disconnected)
+  if (last_sampled_signal == 0) {
+    for (uint8_t channel = 0; channel < RC_NUM_CHANNELS; channel++) {
+      for (uint8_t sample = 0; sample < RC_FILTER_SAMPLES; sample++) {
+        rc_values[channel][sample] = RC_CENTER;
+      }
+    }
+  }
+}
+
+static void on_accel_data(GyroAccelData* data)
+{
+  if (lora_control_enabled) {
+    printf("%f, %f\n", data->temp, data->gyroX); // TODO: Does not work without this print, data out of scope or something? Too tired now.
+    lora_controller_send((uint8_t*)data, sizeof(GyroAccelData));
+  } else if (wifi_enabled) {
+    if (startup_settings == ROVER_SWITCH_STATE_AP) {
+      wifi_controller_ws_send_bin((uint8_t*)data, sizeof(GyroAccelData));
+    } else if (startup_settings == ROVER_SWITCH_STATE_STATION_LORA) {
+      wifi_controller_udp_send_bin((uint8_t*)data, sizeof(GyroAccelData));
+    }
+  }
+
+  if (wifi_enabled) {
+    // To keep the ws open to the controller we need to ping it so that controller knows we did not loose connection.
+    if (startup_settings != ROVER_SWITCH_STATE_AP) {
+      uint8_t ping = 1;
+      wifi_controller_ws_send_bin(&ping, 1);
+    }
+  }
+}

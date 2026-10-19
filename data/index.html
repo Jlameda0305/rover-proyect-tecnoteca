@@ -1,415 +1,293 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Mars Rover RC Controller</title>
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  <style>
-    * {
-      box-sizing: border-box;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    
+    <style>
     body {
-      overflow: hidden;
-      padding: 0;
-      margin: 0;
-      background-color: #121418;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #e0e6ed;
-    }
-    #container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: radial-gradient(circle at center, #1e232d 0%, #0d0f13 100%);
-      touch-action: none;
-    }
-    /* Background zone watermarks */
-    .zone-hint {
-      position: absolute;
-      bottom: 25px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.15);
-      pointer-events: none;
-    }
-    .zone-left {
-      left: 10%;
-    }
-    .zone-right {
-      right: 10%;
-    }
-    .divider {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      width: 1px;
-      background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.08) 70%, transparent);
-      pointer-events: none;
-    }
-
-    /* HUD Header overlay */
-    #info {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 12px 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      pointer-events: none;
-      z-index: 100;
-    }
-    .interactive {
-      pointer-events: auto;
-    }
-
-    .top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 860px;
-      padding: 6px 14px;
-      background: rgba(18, 22, 28, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    }
-    .title-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .title-icon {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ff5722;
-      box-shadow: 0 0 10px #ff5722;
-    }
-    .title-text {
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: #f1f5f9;
-    }
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-    .status-dot.connected {
-      background-color: #2ecc71;
-      box-shadow: 0 0 8px #2ecc71;
-    }
-    .status-dot.disconnected {
-      background-color: #e74c3c;
-      box-shadow: 0 0 8px #e74c3c;
-    }
-
-    /* Mode Buttons & Actions */
-    .controls-panel {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      max-width: 860px;
+      overflow	: hidden;
+      padding		: 0;
+      margin		: 0;
+      background-color: rgb(56, 44, 44);
     }
     .btn {
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 9px 18px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(30, 36, 46, 0.9);
-      color: #cbd5e1;
-      cursor: pointer;
-      transition: all 0.15s ease-in-out;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      box-shadow:inset 0px 2px 0px 0px #cf866c;
+      background-color:#6e8cb3;
+      border-radius:10px;
+      border:1px solid #942911;
+      display:inline-block;
+      cursor:pointer;
+      color:#e3e3e3;
+      font-size:13px;
+      padding:6px 24px;
+      text-decoration:none;
+      text-shadow:0px 1px 0px #854629;
+      font-family: "Arial Black", Gadget, sans-serif
+    }
+    .btn:hover {
+      background-color:#a65849;
     }
     .btn:active {
-      transform: scale(0.97);
+      position:relative;
+      top:1px;
     }
-    .btn-mode.active {
-      background: #ff5722;
-      color: #ffffff;
-      border-color: #ff7043;
-      box-shadow: 0 0 15px rgba(255, 87, 34, 0.5);
+    #resultLeft, #resultRight {
+      font-family: "Arial Black", Gadget, sans-serif
     }
-    .btn-stop {
-      background: #c0392b;
-      color: #ffffff;
-      border-color: #e74c3c;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      box-shadow: 0 0 12px rgba(231, 76, 60, 0.4);
+    #info {
+      position	: absolute;
+      top		: 0px;
+      width		: 100%;
+      padding		: 5px;
+      text-align	: center;
+      color: rgb(214, 185, 185);;
     }
-    .btn-stop:hover, .btn-stop:active {
-      background: #e74c3c;
-      box-shadow: 0 0 18px rgba(231, 76, 60, 0.7);
+    #container {
+      width		: 100%;
+      height		: 100%;
+      overflow	: hidden;
+      padding		: 0;
+      margin		: 0;
+      -webkit-user-select	: none;
+      -moz-user-select	: none;
     }
-
-    /* Telemetry Panel */
-    .telemetry-bar {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      font-size: 11px;
-      font-family: "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
-      color: #94a3b8;
-      background: rgba(15, 18, 24, 0.75);
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      max-width: 860px;
+    #stream {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
+      height: 100%;
     }
-    .telemetry-item b {
-      color: #e2e8f0;
-    }
-    .telemetry-val {
-      color: #38bdf8;
-      font-weight: 600;
-    }
-  </style>
-</head>
-<body>
-  <div id="container">
-    <div class="divider"></div>
-    <div class="zone-hint zone-left">Acelerador (Joystick Izq)</div>
-    <div class="zone-hint zone-right">Dirección (Joystick Der)</div>
-  </div>
-
-  <div id="info">
-    <div class="top-bar interactive">
-      <div class="title-group">
-        <div class="title-icon"></div>
-        <div class="title-text">Mars Rover RC Controller</div>
-      </div>
-      <div id="connectionStatus" class="status-badge">
-        <span id="statusDot" class="status-dot disconnected"></span>
-        <span id="statusText">DESCONECTADO</span>
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div>
+        <img id="stream">
       </div>
     </div>
+    <div id="info">
+      <br/>
+      <button class="btn" value="Normal" onclick="onModeChange(this.value)">Normal</button>
+      <button class="btn" value="Spin" onclick="onModeChange(this.value)">Spin</button>
+      <button class="btn" value="Arm" onclick="onModeChange(this.value)">Arm</button>
+      <button class="btn" value="Gripper" onclick="onModeChange(this.value)">Gripper</button>
+      <button class="btn" value="Head" onclick="onModeChange(this.value)">Head</button>
+      <button class="btn" value="Camera" onclick="onModeChange(this.value)">Toggle Camera</button>
+      <button class="btn" value="Led" onclick="onModeChange(this.value)">Toggle LED</button>
+      <p></p>
+      <span id="resultLeft"></span> <span id="resultRight"></span>
+    </div> 
+    <script src="virtualjoystick.js"></script>
+    <script>
+      const map = (value, x1, y1, x2, y2) => (value - x1) * (y2 - x2) / (y1 - x1) + x2;
+      var roverConnected = false;
+      var timer = null;
+      var switchRoverMode = 1000;
+      var switchArmMode = 1500;
+      var moveHead = false;
+      var isLedOn = false;
+      var cameraOn = false;
+      var connection;
+      var reconnectTimerId = 0;
 
-    <div class="controls-panel interactive">
-      <button id="btnNormal" class="btn btn-mode active" onclick="setMode('Normal')">Normal</button>
-      <button id="btnSpin" class="btn btn-mode" onclick="setMode('Spin')">Spin (360°)</button>
-      <button id="btnStop" class="btn btn-stop" onclick="emergencyStop()">EMERGENCY STOP</button>
-    </div>
+      console.log("touchscreen is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
 
-    <div class="telemetry-bar">
-      <span class="telemetry-item">Modo: <span id="telemetryMode" class="telemetry-val">NORMAL (4WS)</span></span>
-      <span>|</span>
-      <span class="telemetry-item">Throttle: <span id="telemetryThrottle" class="telemetry-val">1500 µs</span></span>
-      <span>|</span>
-      <span class="telemetry-item">Steering: <span id="telemetrySteer" class="telemetry-val">1500 µs</span></span>
-    </div>
-  </div>
+      function connect() {
+        connection = new WebSocket('ws://192.168.4.5:80/ws');
 
-  <script src="virtualjoystick.js"></script>
-  <script>
-    const map = (value, x1, y1, x2, y2) => {
-      var clamped = Math.max(x1, Math.min(y1, value));
-      var result = (clamped - x1) * (y2 - x2) / (y1 - x1) + x2;
-      return Math.round(Math.max(1000, Math.min(2000, result)));
-    };
+        connection.onopen = function () {
+          console.log("Websocket Open");
+          roverConnected = true;
+          reconnectTimerId = 0;
+          timer = setInterval(sendData, 50);
+        };
+  
+        connection.onerror = function (error) {
+          console.log('WebSocket Error ' + error);
+          if (roverConnected) {
+            clearInterval(timer);
+          }
+          roverConnected = false;
+        };
 
-    var roverConnected = false;
-    var timer = null;
-    var switchRoverMode = 1000; // 1000 = Normal, 1500 = Spin
-    var connection = null;
-    var reconnectTimerId = null;
+        connection.onmessage = function (e) {
+          console.log('WS Bin length', e.data.size);
+          if (e.data.size !== (13 * 4)) return; // We expect 13 float values.
+           var buffer = e.data.arrayBuffer().then((buffer) => {
+             var values = new Float32Array(buffer);
+             var data = {
+              temp: values[0],
+              accX: values[1],
+              accY: values[2],
+              accZ: values[3],
+              gyroX: values[4],
+              gyroY: values[5],
+              gyroZ: values[6],
+              gyroAngleX: values[7],
+              gyroAngleY: values[8],
+              gyroAngleZ: values[9],
+              angleX: values[10],
+              angleY: values[11],
+              angleZ: values[12],
+             };
+             // TODO Do something with the data
+           });
+        };
 
-    function updateConnectionStatus(connected) {
-      roverConnected = connected;
-      var statusDot = document.getElementById('statusDot');
-      var statusText = document.getElementById('statusText');
-      if (connected) {
-        statusDot.className = 'status-dot connected';
-        statusText.innerText = 'CONECTADO';
-      } else {
-        statusDot.className = 'status-dot disconnected';
-        statusText.innerText = 'DESCONECTADO';
+        connection.onclose = function (e) {
+            console.log("Websocket close");
+            if (roverConnected) {
+              clearInterval(timer);
+            }
+            roverConnected = false;
+            if (!reconnectTimerId) {
+              reconnectTimerId = setTimeout(function() {
+                connect();
+              }, 100);
+            }
+        };
       }
-    }
+      connect();
 
-    function connect() {
-      const wsUrl = window.location.hostname ? 'ws://' + window.location.hostname + ':80/ws' : 'ws://192.168.4.5:80/ws';
-      console.log('Connecting to WebSocket:', wsUrl);
+      var joystickRight	= new VirtualJoystick({
+        container	: document.getElementById('container'),
+        strokeStyle	: 'cyan',
+        mouseSupport	: true,
+        limitStickTravel: true,
+      });
 
-      try {
-        connection = new WebSocket(wsUrl);
-      } catch (err) {
-        console.error('WebSocket creation error:', err);
-        scheduleReconnect();
-        return;
-      }
+      joystickRight.addEventListener('touchStartValidation', function(event) {
+        var touch	= event.changedTouches[0];
+        if (touch.pageX < window.innerWidth / 2)	return false;
+        return true
+      });
 
-      connection.onopen = function () {
-        console.log('WebSocket Connected');
-        updateConnectionStatus(true);
-        if (reconnectTimerId) {
-          clearTimeout(reconnectTimerId);
-          reconnectTimerId = null;
+      joystickRight.addEventListener('touchEnd', function() {
+
+      });
+
+      var joystickLeft	= new VirtualJoystick({
+        container	: document.getElementById('container'),
+        strokeStyle	: 'orange',
+        mouseSupport	: true,
+        limitStickTravel: true,
+      });
+
+      joystickLeft.addEventListener('touchStartValidation', function(event) {
+        var touch	= event.changedTouches[0];
+        if (touch.pageX >= window.innerWidth / 2)	return false;
+        return true
+      });
+
+      joystickLeft.addEventListener('touchEnd', function() {
+
+      });
+
+      sendData = function (e) {
+        var channelValues = new Uint16Array(6);
+        var xLeft = Math.round(joystickLeft.deltaX());
+        var yLeft = Math.round(joystickLeft.deltaY() * -1);
+        var xRight = Math.round(joystickRight.deltaX());
+        var yRight = Math.round(joystickRight.deltaY() * - 1);
+
+         // If Normal Rover Drive mode use right joystick for steering
+         // and left for forward/backward and ignore other value.
+         // Makes it a bit easier to drive and to avoid accidentally
+         // going forward when you want to just steer.
+        if (switchRoverMode == 1000) {
+          if (!moveHead) {
+            channelValues[0] = map(xRight, -100, 100, 1000, 2000);;
+            channelValues[1] = map(yLeft, -100, 100, 1000, 2000);
+            channelValues[2] = 1500;
+            channelValues[3] = 1500;
+          } else if (moveHead === true) {
+            channelValues[0] = 1500;
+            channelValues[1] = 1500;
+            channelValues[2] = map(-xRight, -100, 100, 1000, 2000);
+            channelValues[3] = map(yRight, -100, 100, 1000, 2000);
+          }
+        } else {
+          channelValues[0] = map(xRight, -100, 100, 1000, 2000);;
+          channelValues[1] = map(yRight, -100, 100, 1000, 2000);;
+          channelValues[2] = map(xLeft, -100, 100, 1000, 2000);
+          channelValues[3] = map(yLeft, -100, 100, 1000, 2000);;
         }
-        if (timer) clearInterval(timer);
-        timer = setInterval(sendData, 50);
-      };
 
-      connection.onerror = function (error) {
-        console.error('WebSocket Error:', error);
-        updateConnectionStatus(false);
-      };
 
-      connection.onclose = function () {
-        console.log('WebSocket Closed');
-        updateConnectionStatus(false);
-        if (timer) {
-          clearInterval(timer);
-          timer = null;
+        channelValues[4] = switchRoverMode;
+        channelValues[5] = switchArmMode;
+
+        //console.log(channelValues);
+
+        if (roverConnected) {
+          connection.send(channelValues);
         }
-        scheduleReconnect();
+
+        var outputEl	= document.getElementById('resultLeft');
+        var outputE2	= document.getElementById('resultRight');
+        outputEl.innerHTML	= '<b>Left:</b> '
+          + ' dx:' + xLeft
+          + ' dy:' + yLeft
+        outputE2.innerHTML	= '<b>Right:</b> '
+          + ' dx:' + xRight
+          + ' dy:' + yRight
       };
-    }
 
-    function scheduleReconnect() {
-      if (!reconnectTimerId) {
-        reconnectTimerId = setTimeout(function () {
-          reconnectTimerId = null;
-          connect();
-        }, 1000);
-      }
-    }
-
-    connect();
-
-    // Virtual Joysticks
-    var joystickLeft = new VirtualJoystick({
-      container: document.getElementById('container'),
-      strokeStyle: '#38bdf8',
-      mouseSupport: true,
-      limitStickTravel: true,
-    });
-
-    joystickLeft.addEventListener('touchStartValidation', function (event) {
-      var touch = event.changedTouches[0];
-      if (touch.pageX >= window.innerWidth / 2) return false;
-      return true;
-    });
-
-    var joystickRight = new VirtualJoystick({
-      container: document.getElementById('container'),
-      strokeStyle: '#ff5722',
-      mouseSupport: true,
-      limitStickTravel: true,
-    });
-
-    joystickRight.addEventListener('touchStartValidation', function (event) {
-      var touch = event.changedTouches[0];
-      if (touch.pageX < window.innerWidth / 2) return false;
-      return true;
-    });
-
-    function updateTelemetry(steerUs, throttleUs) {
-      var tEl = document.getElementById('telemetryThrottle');
-      var sEl = document.getElementById('telemetrySteer');
-      var mEl = document.getElementById('telemetryMode');
-
-      if (tEl) tEl.innerText = throttleUs + ' µs';
-      if (sEl) sEl.innerText = steerUs + ' µs';
-      if (mEl) mEl.innerText = (switchRoverMode === 1500) ? 'SPIN (360°)' : 'NORMAL (4WS)';
-    }
-
-    function sendData() {
-      var channelValues = new Uint16Array(6);
-
-      var xRight = Math.round(joystickRight.deltaX());
-      var yLeft = Math.round(joystickLeft.deltaY() * -1);
-
-      var steerUs = map(xRight, -100, 100, 1000, 2000);
-      var throttleUs = map(yLeft, -100, 100, 1000, 2000);
-
-      channelValues[0] = steerUs;         // Canal 0: Steering (Joystick Derecho)
-      channelValues[1] = throttleUs;      // Canal 1: Throttle (Joystick Izquierdo)
-      channelValues[2] = 1500;            // Canal 2: 1500
-      channelValues[3] = 1500;            // Canal 3: 1500
-      channelValues[4] = switchRoverMode; // Canal 4: Modo Rover (1000 = Normal, 1500 = Spin)
-      channelValues[5] = 1500;            // Canal 5: 1500
-
-      if (roverConnected && connection && connection.readyState === WebSocket.OPEN) {
-        connection.send(channelValues);
+      function onModeChange(mode) {
+        switch (mode) {
+          case 'Normal':
+            switchRoverMode = 1000;
+            switchArmMode = 1500;
+            moveHead = false;
+            break;
+          case 'Head':
+            moveHead = true;
+            switchRoverMode = 1000;
+            switchArmMode = 1500;
+            break;
+          case 'Spin':
+            switchRoverMode = 1500;
+            switchArmMode = 1500;
+            moveHead = false;
+            break;
+          case 'Arm':
+            switchRoverMode = 2000;
+            switchArmMode = 1000;
+            moveHead = false;
+            break;
+          case 'Gripper':
+            switchRoverMode = 2000;
+            switchArmMode = 2000;
+            moveHead = false;
+            break;
+          case 'Led':
+            var url = 'http://192.168.4.10/control?var=led&val=';
+            isLedOn = !isLedOn;
+            if (isLedOn === true) {
+              url += '1';
+            } else {
+              url += '0';
+            }
+            var httpRequest = new XMLHttpRequest();
+            httpRequest.open('GET', url);
+            httpRequest.send();
+            break;
+          case 'Camera':
+            const blankSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+            cameraOn = !cameraOn;
+            if (cameraOn == true) {
+              document.getElementById("stream").src = 'http://192.168.4.10:81/stream';
+            } else {
+              document.getElementById("stream").src = blankSrc;
+            }
+            break;
+          default:
+            break;
+        }
+        sendData();
       }
 
-      updateTelemetry(steerUs, throttleUs);
-    }
-
-    function setMode(mode) {
-      var btnNormal = document.getElementById('btnNormal');
-      var btnSpin = document.getElementById('btnSpin');
-
-      if (mode === 'Spin') {
-        switchRoverMode = 1500;
-        btnSpin.classList.add('active');
-        btnNormal.classList.remove('active');
-      } else {
-        switchRoverMode = 1000;
-        btnNormal.classList.add('active');
-        btnSpin.classList.remove('active');
-      }
-      sendData();
-    }
-
-    function emergencyStop() {
-      switchRoverMode = 1000;
-      var btnNormal = document.getElementById('btnNormal');
-      var btnSpin = document.getElementById('btnSpin');
-      btnNormal.classList.add('active');
-      btnSpin.classList.remove('active');
-
-      var emergencyValues = new Uint16Array(6);
-      emergencyValues[0] = 1500;
-      emergencyValues[1] = 1500;
-      emergencyValues[2] = 1500;
-      emergencyValues[3] = 1500;
-      emergencyValues[4] = 1500;
-      emergencyValues[5] = 1500;
-
-      if (roverConnected && connection && connection.readyState === WebSocket.OPEN) {
-        connection.send(emergencyValues);
-      }
-
-      updateTelemetry(1500, 1500);
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>

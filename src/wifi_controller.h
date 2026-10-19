@@ -22,4 +22,3 @@ void wifi_controller_ws_send_bin(uint8_t* data, uint32_t length);
 void wifi_controller_udp_send_bin(uint8_t* data, uint32_t length);
 void wifi_controller_deinit(void);
 uint16_t wifi_controller_get_val(uint8_t channel);
-#define wifi_controller_get_ch_val wifi_controller_get_val
