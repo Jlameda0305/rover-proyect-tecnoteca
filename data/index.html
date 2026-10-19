@@ -1,415 +1,1188 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Mars Rover RC Controller</title>
-  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mars Robotic Arm (6-DOF) Control</title>
   <style>
+    :root {
+      --bg-base: #0b0e14;
+      --bg-panel: #161b22;
+      --bg-card: #1c2129;
+      --border-color: #30363d;
+      --border-focus: #58a6ff;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-mars: #ff6b35;
+      --accent-mars-glow: rgba(255, 107, 53, 0.35);
+      --accent-cyan: #38bdf8;
+      --accent-cyan-glow: rgba(56, 189, 248, 0.3);
+      --accent-green: #3fb950;
+      --accent-green-glow: rgba(63, 185, 80, 0.35);
+      --accent-red: #f85149;
+      --accent-red-glow: rgba(248, 81, 73, 0.45);
+      --accent-amber: #d29922;
+      --accent-purple: #bc8cff;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
     * {
       box-sizing: border-box;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    body {
-      overflow: hidden;
-      padding: 0;
       margin: 0;
-      background-color: #121418;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #e0e6ed;
-    }
-    #container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: radial-gradient(circle at center, #1e232d 0%, #0d0f13 100%);
-      touch-action: none;
-    }
-    /* Background zone watermarks */
-    .zone-hint {
-      position: absolute;
-      bottom: 25px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.15);
-      pointer-events: none;
-    }
-    .zone-left {
-      left: 10%;
-    }
-    .zone-right {
-      right: 10%;
-    }
-    .divider {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      width: 1px;
-      background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.08) 70%, transparent);
-      pointer-events: none;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
-    /* HUD Header overlay */
-    #info {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 12px 16px;
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      pointer-events: none;
-      z-index: 100;
-    }
-    .interactive {
-      pointer-events: auto;
+      padding: 12px;
+      overflow-x: hidden;
+      touch-action: manipulation;
     }
 
-    .top-bar {
+    header {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      width: 100%;
-      max-width: 860px;
-      padding: 6px 14px;
-      background: rgba(18, 22, 28, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      gap: 14px;
     }
+
     .title-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-    .title-icon {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ff5722;
-      box-shadow: 0 0 10px #ff5722;
+
+    .title-group svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--accent-mars);
+      filter: drop-shadow(0 0 6px var(--accent-mars-glow));
     }
-    .title-text {
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: #f1f5f9;
+
+    .title-text h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .status-badge {
+
+    .title-text p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+
+    .badge-status {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      letter-spacing: 0.5px;
+      border: 1px solid transparent;
+      transition: all 0.3s ease;
     }
+
+    .badge-status.connected {
+      background: rgba(63, 185, 80, 0.15);
+      border-color: var(--accent-green);
+      color: #7ee787;
+      box-shadow: 0 0 10px var(--accent-green-glow);
+    }
+
+    .badge-status.disconnected {
+      background: rgba(248, 81, 73, 0.15);
+      border-color: var(--accent-red);
+      color: #ff7b72;
+      box-shadow: 0 0 10px var(--accent-red-glow);
+    }
+
     .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-    }
-    .status-dot.connected {
-      background-color: #2ecc71;
-      box-shadow: 0 0 8px #2ecc71;
-    }
-    .status-dot.disconnected {
-      background-color: #e74c3c;
-      box-shadow: 0 0 8px #e74c3c;
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
     }
 
-    /* Mode Buttons & Actions */
-    .controls-panel {
+    .badge-status.connected .status-dot {
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Global Controls Bar */
+    .global-bar {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 12px 18px;
+      margin-bottom: 14px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      max-width: 860px;
-    }
-    .btn {
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 9px 18px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(30, 36, 46, 0.9);
-      color: #cbd5e1;
-      cursor: pointer;
-      transition: all 0.15s ease-in-out;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-    .btn:active {
-      transform: scale(0.97);
-    }
-    .btn-mode.active {
-      background: #ff5722;
-      color: #ffffff;
-      border-color: #ff7043;
-      box-shadow: 0 0 15px rgba(255, 87, 34, 0.5);
-    }
-    .btn-stop {
-      background: #c0392b;
-      color: #ffffff;
-      border-color: #e74c3c;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      box-shadow: 0 0 12px rgba(231, 76, 60, 0.4);
-    }
-    .btn-stop:hover, .btn-stop:active {
-      background: #e74c3c;
-      box-shadow: 0 0 18px rgba(231, 76, 60, 0.7);
+      justify-content: space-between;
+      gap: 16px;
     }
 
-    /* Telemetry Panel */
-    .telemetry-bar {
+    .speed-control {
       display: flex;
+      align-items: center;
       gap: 12px;
-      justify-content: center;
-      font-size: 11px;
-      font-family: "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
-      color: #94a3b8;
-      background: rgba(15, 18, 24, 0.75);
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      max-width: 860px;
+      flex: 1 1 300px;
     }
-    .telemetry-item b {
-      color: #e2e8f0;
-    }
-    .telemetry-val {
-      color: #38bdf8;
+
+    .speed-label {
+      font-size: 0.85rem;
       font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .speed-val-badge {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--accent-amber);
+      font-weight: 700;
+      background: rgba(210, 153, 34, 0.15);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(210, 153, 34, 0.3);
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .speed-slider-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      min-width: 100px;
+    }
+
+    .speed-presets {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-speed {
+      background: #21262d;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-speed:hover, .btn-speed.active {
+      background: #30363d;
+      color: #ffffff;
+      border-color: var(--accent-amber);
+    }
+
+    .actions-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-home {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .btn-home:hover {
+      background: var(--accent-cyan);
+      color: #0b0e14;
+      box-shadow: 0 0 12px var(--accent-cyan-glow);
+    }
+
+    .btn-rest {
+      background: rgba(188, 140, 255, 0.15);
+      border-color: var(--accent-purple);
+      color: var(--accent-purple);
+    }
+
+    .btn-rest:hover {
+      background: var(--accent-purple);
+      color: #0b0e14;
+      box-shadow: 0 0 12px rgba(188, 140, 255, 0.35);
+    }
+
+    .btn-estop {
+      background: var(--accent-red);
+      border-color: #ff7b72;
+      color: #ffffff;
+      box-shadow: 0 0 16px var(--accent-red-glow);
+      animation: estop-pulse 2s infinite ease-in-out;
+      padding: 9px 20px;
+      font-size: 0.88rem;
+    }
+
+    .btn-estop:hover {
+      background: #da3633;
+      box-shadow: 0 0 24px var(--accent-red-glow);
+    }
+
+    @keyframes estop-pulse {
+      0%, 100% { box-shadow: 0 0 12px var(--accent-red-glow); }
+      50% { box-shadow: 0 0 22px rgba(248, 81, 73, 0.7); }
+    }
+
+    .btn-toggle-joysticks {
+      background: #21262d;
+      border-color: var(--border-color);
+      color: var(--text-main);
+    }
+
+    .btn-toggle-joysticks:hover, .btn-toggle-joysticks.active {
+      background: #30363d;
+      border-color: var(--accent-mars);
+      color: var(--accent-mars);
+    }
+
+    /* Grid layout for 6 Joints */
+    .joints-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    @media (min-width: 1200px) {
+      .joints-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: #484f58;
+    }
+
+    .card.moving {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 14px var(--accent-green-glow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .joint-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .joint-id {
+      background: rgba(255, 107, 53, 0.15);
+      color: var(--accent-mars);
+      border: 1px solid rgba(255, 107, 53, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 1px 6px;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+    }
+
+    .badges-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-deg {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      min-width: 58px;
+      text-align: right;
+    }
+
+    .badge-us {
+      background: rgba(139, 148, 158, 0.12);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      min-width: 65px;
+      text-align: right;
+    }
+
+    .badge-motion {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #21262d;
+      color: #484f58;
+      letter-spacing: 0.5px;
+    }
+
+    .card.moving .badge-motion {
+      background: rgba(63, 185, 80, 0.2);
+      color: var(--accent-green);
+      border: 1px solid rgba(63, 185, 80, 0.4);
+    }
+
+    /* Slider Container */
+    .slider-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #21262d;
+      border-radius: 4px;
+      outline: none;
+      transition: background 0.2s;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-mars);
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 8px var(--accent-mars-glow);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-mars);
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 8px var(--accent-mars-glow);
+      cursor: pointer;
+    }
+
+    input[type=range]:active::-webkit-slider-thumb {
+      transform: scale(1.15);
+      box-shadow: 0 0 14px var(--accent-mars);
+    }
+
+    /* Hold-to-Jog Controls */
+    .jog-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-jog {
+      background: #21262d;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 12px 10px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-jog:active, .btn-jog.pressed {
+      background: var(--accent-mars);
+      color: #ffffff;
+      border-color: #ffffff;
+      box-shadow: 0 0 16px var(--accent-mars-glow);
+      transform: scale(0.98);
+    }
+
+    /* Preset Snap Buttons */
+    .presets-row {
+      display: flex;
+      gap: 6px;
+      justify-content: space-between;
+    }
+
+    .btn-snap {
+      flex: 1;
+      background: #161b22;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 4px;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-snap:hover {
+      background: #21262d;
+      color: #ffffff;
+      border-color: var(--border-focus);
+    }
+
+    .btn-snap:active {
+      transform: translateY(1px);
+      background: #30363d;
+    }
+
+    /* Dual Joysticks Section */
+    .joysticks-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .joysticks-panel.open {
+      display: flex;
+    }
+
+    .joysticks-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .joysticks-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .joysticks-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 20px;
+      padding: 10px 0;
+    }
+
+    .joystick-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .joystick-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .joystick-canvas-wrap {
+      width: 180px;
+      height: 180px;
+      background: #11141a;
+      border: 2px solid var(--border-color);
+      border-radius: 50%;
+      position: relative;
+      touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .joystick-thumb {
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle at 35% 35%, #ff8c5a, var(--accent-mars));
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      position: absolute;
+      top: 58px;
+      left: 58px;
+      box-shadow: 0 0 12px var(--accent-mars-glow);
+      pointer-events: none;
+      transition: transform 0.05s ease-out;
+    }
+
+    .joystick-crosshair {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .joystick-crosshair::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .joystick-crosshair::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 10%;
+      bottom: 10%;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 10px;
+      font-size: 0.72rem;
+      color: #484f58;
+      font-family: var(--font-mono);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 8px;
+      }
+      header {
+        padding: 12px;
+      }
+      .global-bar {
+        padding: 12px;
+      }
+      .actions-group {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .btn {
+        flex: 1 1 auto;
+        padding: 8px 10px;
+        font-size: 0.78rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <div class="divider"></div>
-    <div class="zone-hint zone-left">Acelerador (Joystick Izq)</div>
-    <div class="zone-hint zone-right">Dirección (Joystick Der)</div>
-  </div>
 
-  <div id="info">
-    <div class="top-bar interactive">
-      <div class="title-group">
-        <div class="title-icon"></div>
-        <div class="title-text">Mars Rover RC Controller</div>
-      </div>
-      <div id="connectionStatus" class="status-badge">
-        <span id="statusDot" class="status-dot disconnected"></span>
-        <span id="statusText">DESCONECTADO</span>
+  <!-- Header -->
+  <header>
+    <div class="title-group">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+      <div class="title-text">
+        <h1>Mars Robotic Arm <span style="font-size: 0.75rem; color: var(--accent-mars); font-weight: 600; border: 1px solid var(--accent-mars); padding: 1px 6px; border-radius: 4px;">6-DOF</span></h1>
+        <p>Mission Control Interface &amp; Real-time Telemetry</p>
       </div>
     </div>
 
-    <div class="controls-panel interactive">
-      <button id="btnNormal" class="btn btn-mode active" onclick="setMode('Normal')">Normal</button>
-      <button id="btnSpin" class="btn btn-mode" onclick="setMode('Spin')">Spin (360°)</button>
-      <button id="btnStop" class="btn btn-stop" onclick="emergencyStop()">EMERGENCY STOP</button>
+    <div id="statusBadge" class="badge-status disconnected">
+      <span class="status-dot"></span>
+      <span id="statusText">Disconnected</span>
+    </div>
+  </header>
+
+  <!-- Global Controls Bar -->
+  <div class="global-bar">
+    <div class="speed-control">
+      <span class="speed-label">Global Speed:</span>
+      <div class="speed-slider-wrap">
+        <input type="range" id="globalSpeedSlider" min="1" max="10" value="5" step="1">
+      </div>
+      <span id="speedDisplay" class="speed-val-badge">5</span>
+      <div class="speed-presets">
+        <button class="btn-speed" onclick="setGlobalSpeed(2)">Precision 2</button>
+        <button class="btn-speed active" onclick="setGlobalSpeed(5)">Normal 5</button>
+        <button class="btn-speed" onclick="setGlobalSpeed(10)">Fast 10</button>
+      </div>
     </div>
 
-    <div class="telemetry-bar">
-      <span class="telemetry-item">Modo: <span id="telemetryMode" class="telemetry-val">NORMAL (4WS)</span></span>
-      <span>|</span>
-      <span class="telemetry-item">Throttle: <span id="telemetryThrottle" class="telemetry-val">1500 µs</span></span>
-      <span>|</span>
-      <span class="telemetry-item">Steering: <span id="telemetrySteer" class="telemetry-val">1500 µs</span></span>
+    <div class="actions-group">
+      <button class="btn btn-home" onclick="sendArmCommand('home')">
+        <span>&#x2302;</span> HOME
+      </button>
+      <button class="btn btn-rest" onclick="sendArmCommand('rest')">
+        <span>&#x23F8;</span> REST
+      </button>
+      <button class="btn btn-estop" onclick="sendArmCommand('stop')">
+        <span>&#x26D4;</span> E-STOP
+      </button>
+      <button id="toggleJoysticksBtn" class="btn btn-toggle-joysticks" onclick="toggleJoysticks()">
+        <span>&#x1F3AE;</span> Joysticks
+      </button>
     </div>
   </div>
 
-  <script src="virtualjoystick.js"></script>
+  <!-- Collapsible Dual Joysticks Panel -->
+  <div id="joysticksPanel" class="joysticks-panel">
+    <div class="joysticks-header">
+      <h2>&#x1F3AE; Dual Touchscreen Analog Joysticks</h2>
+      <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">Auto-centers on release</span>
+    </div>
+    <div class="joysticks-container">
+      <div class="joystick-zone">
+        <div class="joystick-label">LEFT: Base (X) &amp; Shoulder (Y)</div>
+        <div id="joyLeft" class="joystick-canvas-wrap">
+          <div class="joystick-crosshair"></div>
+          <div id="thumbLeft" class="joystick-thumb"></div>
+        </div>
+      </div>
+      <div class="joystick-zone">
+        <div class="joystick-label">RIGHT: Wrist Pitch (X) &amp; Elbow (Y)</div>
+        <div id="joyRight" class="joystick-canvas-wrap">
+          <div class="joystick-crosshair"></div>
+          <div id="thumbRight" class="joystick-thumb"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 Joint Control Cards Grid -->
+  <div id="jointsGrid" class="joints-grid">
+    <!-- Populated by JavaScript -->
+  </div>
+
+  <footer>
+    MARS ROVER 6-DOF ROBOTIC ARM CONTROLLER &bull; ESP32 STANDALONE EMBEDDED SYSTEM &bull; WS 192.168.4.5:80/ws
+  </footer>
+
   <script>
-    const map = (value, x1, y1, x2, y2) => {
-      var clamped = Math.max(x1, Math.min(y1, value));
-      var result = (clamped - x1) * (y2 - x2) / (y1 - x1) + x2;
-      return Math.round(Math.max(1000, Math.min(2000, result)));
-    };
+    // Configuration constants
+    const JOINTS_CONFIG = [
+      { id: 0, name: "Base", desc: "Turntable Yaw", min_us: 1000, max_us: 2000, min_deg: 0, max_deg: 180, home: 1900 },
+      { id: 1, name: "Shoulder", desc: "Pitch Lift", min_us: 1000, max_us: 2000, min_deg: 0, max_deg: 180, home: 1600 },
+      { id: 2, name: "Elbow", desc: "Forearm Pitch", min_us: 1000, max_us: 2000, min_deg: 0, max_deg: 180, home: 1200 },
+      { id: 3, name: "Wrist Pitch", desc: "Elevation", min_us: 1000, max_us: 2000, min_deg: 0, max_deg: 180, home: 1200 },
+      { id: 4, name: "Wrist Roll", desc: "Rotation", min_us: 1000, max_us: 2000, min_deg: 0, max_deg: 180, home: 1500 },
+      { id: 5, name: "Gripper", desc: "End Effector Claw", min_us: 1000, max_us: 2000, min_deg: 0, max_deg: 180, home: 1500 }
+    ];
 
-    var roverConnected = false;
-    var timer = null;
-    var switchRoverMode = 1000; // 1000 = Normal, 1500 = Spin
-    var connection = null;
-    var reconnectTimerId = null;
+    let ws = null;
+    let isConnected = false;
+    let globalSpeed = 5;
+    let isDraggingSlider = [false, false, false, false, false, false];
+    let sliderDebounceTimers = [null, null, null, null, null, null];
+    let activeJogs = new Map(); // pointerId -> { joint, dir }
 
-    function updateConnectionStatus(connected) {
-      roverConnected = connected;
-      var statusDot = document.getElementById('statusDot');
-      var statusText = document.getElementById('statusText');
-      if (connected) {
-        statusDot.className = 'status-dot connected';
-        statusText.innerText = 'CONECTADO';
-      } else {
-        statusDot.className = 'status-dot disconnected';
-        statusText.innerText = 'DESCONECTADO';
+    // Convert pulse (1000..2000) to degrees (0..180)
+    function pulseToDeg(us) {
+      const clamped = Math.max(1000, Math.min(2000, us));
+      return ((clamped - 1000) * 180.0 / 1000.0).toFixed(1);
+    }
+
+    // Convert degrees (0..180) to pulse (1000..2000)
+    function degToPulse(deg) {
+      const clamped = Math.max(0, Math.min(180, deg));
+      return Math.round(1000 + (clamped * 1000.0 / 180.0));
+    }
+
+    // Initialize Dashboard UI Cards
+    function renderJointCards() {
+      const grid = document.getElementById("jointsGrid");
+      grid.innerHTML = "";
+
+      JOINTS_CONFIG.forEach((j) => {
+        const isGripper = (j.id === 5);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.id = `card-joint-${j.id}`;
+
+        const snapButtonsHtml = isGripper ? `
+          <button class="btn-snap" onclick="setJointPosition(${j.id}, 1000)">Open (1000µs)</button>
+          <button class="btn-snap" onclick="setJointPosition(${j.id}, 1500)">Half (1500µs)</button>
+          <button class="btn-snap" onclick="setJointPosition(${j.id}, 2000)">Closed (2000µs)</button>
+        ` : `
+          <button class="btn-snap" onclick="setJointPosition(${j.id}, 1000)">Min (0° / 1000µs)</button>
+          <button class="btn-snap" onclick="setJointPosition(${j.id}, 1500)">Center (90° / 1500µs)</button>
+          <button class="btn-snap" onclick="setJointPosition(${j.id}, 2000)">Max (180° / 2000µs)</button>
+        `;
+
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="joint-title">
+              <span class="joint-id">J${j.id}</span>
+              <div>
+                <div>${j.name}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">${j.desc}</div>
+              </div>
+            </div>
+            <div class="badges-group">
+              <span id="deg-${j.id}" class="badge-deg">${pulseToDeg(j.home)}°</span>
+              <span id="us-${j.id}" class="badge-us">${j.home} µs</span>
+              <span id="motion-${j.id}" class="badge-motion">IDLE</span>
+            </div>
+          </div>
+
+          <div class="slider-section">
+            <div class="slider-labels">
+              <span>${isGripper ? "OPEN (1000µs)" : "0° (1000µs)"}</span>
+              <span>${isGripper ? "HALF (1500µs)" : "90° (1500µs)"}</span>
+              <span>${isGripper ? "CLOSED (2000µs)" : "180° (2000µs)"}</span>
+            </div>
+            <input type="range" id="slider-${j.id}" min="1000" max="2000" value="${j.home}" step="5">
+          </div>
+
+          <div class="jog-controls">
+            <button class="btn-jog" id="jog-neg-${j.id}">
+              <span>&#x25C0;</span> ${isGripper ? "OPEN (-)" : "JOG (-)"}
+            </button>
+            <button class="btn-jog" id="jog-pos-${j.id}">
+              ${isGripper ? "CLOSE (+)" : "JOG (+)"} <span>&#x25B6;</span>
+            </button>
+          </div>
+
+          <div class="presets-row">
+            ${snapButtonsHtml}
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      setupInteractions();
+    }
+
+    // Attach event listeners for sliders and hold-to-jog buttons
+    function setupInteractions() {
+      JOINTS_CONFIG.forEach((j) => {
+        const slider = document.getElementById(`slider-${j.id}`);
+        const jogNeg = document.getElementById(`jog-neg-${j.id}`);
+        const jogPos = document.getElementById(`jog-pos-${j.id}`);
+
+        // Slider events
+        slider.addEventListener("pointerdown", () => {
+          isDraggingSlider[j.id] = true;
+        });
+
+        slider.addEventListener("input", (e) => {
+          isDraggingSlider[j.id] = true;
+          const val = parseInt(e.target.value, 10);
+          updateJointDisplay(j.id, val, pulseToDeg(val), false);
+
+          if (sliderDebounceTimers[j.id]) {
+            clearTimeout(sliderDebounceTimers[j.id]);
+          }
+          sliderDebounceTimers[j.id] = setTimeout(() => {
+            sendJson({ cmd: "set_joint", joint: j.id, pos: val, speed: globalSpeed });
+          }, 35);
+        });
+
+        const onSliderRelease = (e) => {
+          if (!isDraggingSlider[j.id]) return;
+          const val = parseInt(slider.value, 10);
+          sendJson({ cmd: "set_joint", joint: j.id, pos: val, speed: globalSpeed });
+          setTimeout(() => {
+            isDraggingSlider[j.id] = false;
+          }, 150);
+        };
+
+        slider.addEventListener("pointerup", onSliderRelease);
+        slider.addEventListener("change", onSliderRelease);
+
+        // Hold-to-Jog: Negative
+        bindJogButton(jogNeg, j.id, -1);
+
+        // Hold-to-Jog: Positive
+        bindJogButton(jogPos, j.id, +1);
+      });
+    }
+
+    function bindJogButton(btn, jointId, direction) {
+      const startJog = (e) => {
+        e.preventDefault();
+        btn.classList.add("pressed");
+        activeJogs.set(e.pointerId || 1, { joint: jointId, dir: direction, btn: btn });
+        sendJson({ cmd: "jog", joint: jointId, dir: direction, speed: globalSpeed });
+      };
+
+      const stopJog = (e) => {
+        const id = e.pointerId || 1;
+        if (activeJogs.has(id) || btn.classList.contains("pressed")) {
+          btn.classList.remove("pressed");
+          activeJogs.delete(id);
+          sendJson({ cmd: "jog", joint: jointId, dir: 0, speed: globalSpeed });
+        }
+      };
+
+      btn.addEventListener("pointerdown", startJog);
+      btn.addEventListener("pointerup", stopJog);
+      btn.addEventListener("pointerleave", stopJog);
+      btn.addEventListener("pointercancel", stopJog);
+    }
+
+    // Safety: Window-level release stops all active jogs
+    window.addEventListener("pointerup", () => {
+      if (activeJogs.size > 0) {
+        activeJogs.forEach((info) => {
+          if (info.btn) info.btn.classList.remove("pressed");
+          sendJson({ cmd: "jog", joint: info.joint, dir: 0, speed: globalSpeed });
+        });
+        activeJogs.clear();
+      }
+    });
+
+    // Send JSON command over WebSocket
+    function sendJson(obj) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      ws.send(JSON.stringify(obj));
+    }
+
+    // Global Arm commands
+    function sendArmCommand(cmd) {
+      sendJson({ cmd: cmd, speed: globalSpeed });
+    }
+
+    // Direct snap target
+    function setJointPosition(jointId, pulse) {
+      const slider = document.getElementById(`slider-${jointId}`);
+      if (slider) slider.value = pulse;
+      updateJointDisplay(jointId, pulse, pulseToDeg(pulse), false);
+      sendJson({ cmd: "set_joint", joint: jointId, pos: pulse, speed: globalSpeed });
+    }
+
+    // Global Speed Control
+    function setGlobalSpeed(speed) {
+      globalSpeed = Math.max(1, Math.min(10, speed));
+      const slider = document.getElementById("globalSpeedSlider");
+      if (slider) slider.value = globalSpeed;
+      const display = document.getElementById("speedDisplay");
+      if (display) display.textContent = globalSpeed;
+
+      // Update preset button active states
+      document.querySelectorAll(".btn-speed").forEach((btn) => {
+        if (btn.textContent.includes(` ${globalSpeed}`)) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+    }
+
+    document.getElementById("globalSpeedSlider").addEventListener("input", (e) => {
+      setGlobalSpeed(parseInt(e.target.value, 10));
+    });
+
+    // Update joint badges and slider
+    function updateJointDisplay(jointId, us, deg, isMoving) {
+      const degEl = document.getElementById(`deg-${jointId}`);
+      const usEl = document.getElementById(`us-${jointId}`);
+      const motionEl = document.getElementById(`motion-${jointId}`);
+      const cardEl = document.getElementById(`card-joint-${jointId}`);
+      const sliderEl = document.getElementById(`slider-${jointId}`);
+
+      if (degEl) degEl.textContent = `${parseFloat(deg).toFixed(1)}°`;
+      if (usEl) usEl.textContent = `${us} µs`;
+
+      if (cardEl && motionEl) {
+        if (isMoving) {
+          cardEl.classList.add("moving");
+          motionEl.textContent = "MOVING";
+        } else {
+          cardEl.classList.remove("moving");
+          motionEl.textContent = "IDLE";
+        }
+      }
+
+      if (sliderEl && !isDraggingSlider[jointId]) {
+        sliderEl.value = us;
       }
     }
 
-    function connect() {
-      const wsUrl = window.location.hostname ? 'ws://' + window.location.hostname + ':80/ws' : 'ws://192.168.4.5:80/ws';
-      console.log('Connecting to WebSocket:', wsUrl);
-
+    // Process incoming WebSocket telemetry
+    function handleIncomingMessage(event) {
       try {
-        connection = new WebSocket(wsUrl);
+        const data = JSON.parse(event.data);
+        if (data.type === "arm_state" || data.joints) {
+          if (Array.isArray(data.joints)) {
+            data.joints.forEach((joint) => {
+              const jId = joint.id !== undefined ? joint.id : joint.joint;
+              if (jId !== undefined && jId >= 0 && jId < 6) {
+                updateJointDisplay(jId, joint.us, joint.deg, !!joint.moving);
+              }
+            });
+          } else if (Array.isArray(data.us) && Array.isArray(data.deg)) {
+            for (let i = 0; i < 6; i++) {
+              const moving = Array.isArray(data.moving) ? !!data.moving[i] : !!data.moving;
+              updateJointDisplay(i, data.us[i], data.deg[i], moving);
+            }
+          }
+        }
       } catch (err) {
-        console.error('WebSocket creation error:', err);
-        scheduleReconnect();
+        console.warn("Failed to parse telemetry message:", err);
+      }
+    }
+
+    // WebSocket Connection Management
+    let reconnectTimer = null;
+    function connectWebSocket() {
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
         return;
       }
 
-      connection.onopen = function () {
-        console.log('WebSocket Connected');
-        updateConnectionStatus(true);
-        if (reconnectTimerId) {
-          clearTimeout(reconnectTimerId);
-          reconnectTimerId = null;
+      const host = window.location.hostname || "192.168.4.5";
+      const port = window.location.port || "80";
+      const protocol = (window.location.protocol === "https:") ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${host}:${port}/ws`;
+
+      console.log(`Connecting to WebSocket: ${wsUrl}`);
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log("WebSocket connected.");
+        isConnected = true;
+        updateStatusBadge(true);
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
         }
-        if (timer) clearInterval(timer);
-        timer = setInterval(sendData, 50);
+        // Immediately request current arm state
+        sendJson({ cmd: "get_state" });
       };
 
-      connection.onerror = function (error) {
-        console.error('WebSocket Error:', error);
-        updateConnectionStatus(false);
+      ws.onmessage = handleIncomingMessage;
+
+      ws.onerror = (e) => {
+        console.warn("WebSocket error occurred.");
       };
 
-      connection.onclose = function () {
-        console.log('WebSocket Closed');
-        updateConnectionStatus(false);
-        if (timer) {
-          clearInterval(timer);
-          timer = null;
+      ws.onclose = () => {
+        console.log("WebSocket disconnected.");
+        isConnected = false;
+        updateStatusBadge(false);
+        if (!reconnectTimer) {
+          reconnectTimer = setTimeout(connectWebSocket, 1500);
         }
-        scheduleReconnect();
       };
     }
 
-    function scheduleReconnect() {
-      if (!reconnectTimerId) {
-        reconnectTimerId = setTimeout(function () {
-          reconnectTimerId = null;
-          connect();
-        }, 1000);
-      }
-    }
-
-    connect();
-
-    // Virtual Joysticks
-    var joystickLeft = new VirtualJoystick({
-      container: document.getElementById('container'),
-      strokeStyle: '#38bdf8',
-      mouseSupport: true,
-      limitStickTravel: true,
-    });
-
-    joystickLeft.addEventListener('touchStartValidation', function (event) {
-      var touch = event.changedTouches[0];
-      if (touch.pageX >= window.innerWidth / 2) return false;
-      return true;
-    });
-
-    var joystickRight = new VirtualJoystick({
-      container: document.getElementById('container'),
-      strokeStyle: '#ff5722',
-      mouseSupport: true,
-      limitStickTravel: true,
-    });
-
-    joystickRight.addEventListener('touchStartValidation', function (event) {
-      var touch = event.changedTouches[0];
-      if (touch.pageX < window.innerWidth / 2) return false;
-      return true;
-    });
-
-    function updateTelemetry(steerUs, throttleUs) {
-      var tEl = document.getElementById('telemetryThrottle');
-      var sEl = document.getElementById('telemetrySteer');
-      var mEl = document.getElementById('telemetryMode');
-
-      if (tEl) tEl.innerText = throttleUs + ' µs';
-      if (sEl) sEl.innerText = steerUs + ' µs';
-      if (mEl) mEl.innerText = (switchRoverMode === 1500) ? 'SPIN (360°)' : 'NORMAL (4WS)';
-    }
-
-    function sendData() {
-      var channelValues = new Uint16Array(6);
-
-      var xRight = Math.round(joystickRight.deltaX());
-      var yLeft = Math.round(joystickLeft.deltaY() * -1);
-
-      var steerUs = map(xRight, -100, 100, 1000, 2000);
-      var throttleUs = map(yLeft, -100, 100, 1000, 2000);
-
-      channelValues[0] = steerUs;         // Canal 0: Steering (Joystick Derecho)
-      channelValues[1] = throttleUs;      // Canal 1: Throttle (Joystick Izquierdo)
-      channelValues[2] = 1500;            // Canal 2: 1500
-      channelValues[3] = 1500;            // Canal 3: 1500
-      channelValues[4] = switchRoverMode; // Canal 4: Modo Rover (1000 = Normal, 1500 = Spin)
-      channelValues[5] = 1500;            // Canal 5: 1500
-
-      if (roverConnected && connection && connection.readyState === WebSocket.OPEN) {
-        connection.send(channelValues);
-      }
-
-      updateTelemetry(steerUs, throttleUs);
-    }
-
-    function setMode(mode) {
-      var btnNormal = document.getElementById('btnNormal');
-      var btnSpin = document.getElementById('btnSpin');
-
-      if (mode === 'Spin') {
-        switchRoverMode = 1500;
-        btnSpin.classList.add('active');
-        btnNormal.classList.remove('active');
+    function updateStatusBadge(connected) {
+      const badge = document.getElementById("statusBadge");
+      const text = document.getElementById("statusText");
+      if (connected) {
+        badge.className = "badge-status connected";
+        text.textContent = "Connected";
       } else {
-        switchRoverMode = 1000;
-        btnNormal.classList.add('active');
-        btnSpin.classList.remove('active');
+        badge.className = "badge-status disconnected";
+        text.textContent = "Disconnected";
       }
-      sendData();
     }
 
-    function emergencyStop() {
-      switchRoverMode = 1000;
-      var btnNormal = document.getElementById('btnNormal');
-      var btnSpin = document.getElementById('btnSpin');
-      btnNormal.classList.add('active');
-      btnSpin.classList.remove('active');
-
-      var emergencyValues = new Uint16Array(6);
-      emergencyValues[0] = 1500;
-      emergencyValues[1] = 1500;
-      emergencyValues[2] = 1500;
-      emergencyValues[3] = 1500;
-      emergencyValues[4] = 1500;
-      emergencyValues[5] = 1500;
-
-      if (roverConnected && connection && connection.readyState === WebSocket.OPEN) {
-        connection.send(emergencyValues);
-      }
-
-      updateTelemetry(1500, 1500);
+    // Toggle Collapsible Dual Joysticks Panel
+    function toggleJoysticks() {
+      const panel = document.getElementById("joysticksPanel");
+      const btn = document.getElementById("toggleJoysticksBtn");
+      panel.classList.toggle("open");
+      btn.classList.toggle("active");
     }
+
+    // Dual Touch Joystick Controller Implementation
+    function initTouchJoystick(zoneId, thumbId, onMove, onRelease) {
+      const zone = document.getElementById(zoneId);
+      const thumb = document.getElementById(thumbId);
+      const radius = 60; // Max movement radius
+      let isTracking = false;
+      let center = { x: 0, y: 0 };
+
+      const updateThumb = (dx, dy) => {
+        thumb.style.transform = `translate(${dx}px, ${dy}px)`;
+      };
+
+      const start = (e) => {
+        e.preventDefault();
+        isTracking = true;
+        const rect = zone.getBoundingClientRect();
+        center = {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+        };
+        move(e);
+      };
+
+      const move = (e) => {
+        if (!isTracking) return;
+        const clientX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+        const clientY = e.clientY !== undefined ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
+
+        let dx = clientX - center.x;
+        let dy = clientY - center.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > radius) {
+          const angle = Math.atan2(dy, dx);
+          dx = Math.cos(angle) * radius;
+          dy = Math.sin(angle) * radius;
+        }
+
+        updateThumb(dx, dy);
+        const normX = dx / radius; // -1.0 .. +1.0
+        const normY = -dy / radius; // -1.0 .. +1.0 (up is positive)
+        onMove(normX, normY);
+      };
+
+      const end = (e) => {
+        if (!isTracking) return;
+        isTracking = false;
+        updateThumb(0, 0);
+        onRelease();
+      };
+
+      zone.addEventListener("pointerdown", start);
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", end);
+      window.addEventListener("pointercancel", end);
+    }
+
+    // Joystick mappings:
+    // Left: Base (X) & Shoulder (Y)
+    // Right: Wrist Pitch (X) & Elbow (Y)
+    let leftJoyState = { x: 0, y: 0 };
+    let rightJoyState = { y: 0, x: 0 };
+
+    initTouchJoystick("joyLeft", "thumbLeft", (nx, ny) => {
+      // Deadband 0.15
+      const dirX = Math.abs(nx) > 0.15 ? (nx > 0 ? 1 : -1) : 0;
+      const dirY = Math.abs(ny) > 0.15 ? (ny > 0 ? 1 : -1) : 0;
+
+      if (dirX !== leftJoyState.x) {
+        leftJoyState.x = dirX;
+        sendJson({ cmd: "jog", joint: 0, dir: dirX, speed: globalSpeed });
+      }
+      if (dirY !== leftJoyState.y) {
+        leftJoyState.y = dirY;
+        sendJson({ cmd: "jog", joint: 1, dir: dirY, speed: globalSpeed });
+      }
+    }, () => {
+      leftJoyState = { x: 0, y: 0 };
+      sendJson({ cmd: "jog", joint: 0, dir: 0, speed: globalSpeed });
+      sendJson({ cmd: "jog", joint: 1, dir: 0, speed: globalSpeed });
+    });
+
+    initTouchJoystick("joyRight", "thumbRight", (nx, ny) => {
+      const dirX = Math.abs(nx) > 0.15 ? (nx > 0 ? 1 : -1) : 0;
+      const dirY = Math.abs(ny) > 0.15 ? (ny > 0 ? 1 : -1) : 0;
+
+      if (dirY !== rightJoyState.y) {
+        rightJoyState.y = dirY;
+        sendJson({ cmd: "jog", joint: 2, dir: dirY, speed: globalSpeed });
+      }
+      if (dirX !== rightJoyState.x) {
+        rightJoyState.x = dirX;
+        sendJson({ cmd: "jog", joint: 3, dir: dirX, speed: globalSpeed });
+      }
+    }, () => {
+      rightJoyState = { x: 0, y: 0 };
+      sendJson({ cmd: "jog", joint: 2, dir: 0, speed: globalSpeed });
+      sendJson({ cmd: "jog", joint: 3, dir: 0, speed: globalSpeed });
+    });
+
+    // Bootstrapping
+    document.addEventListener("DOMContentLoaded", () => {
+      renderJointCards();
+      connectWebSocket();
+    });
   </script>
 </body>
 </html>
