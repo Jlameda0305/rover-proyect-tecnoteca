@@ -38,9 +38,9 @@
 // L298N DUAL H-BRIDGE MOTOR DRIVER PINS (4 DC MOTORS)
 // ============================================================================
 // Left Motors (OUT1 & OUT2 in parallel)
-#define ROVER_L298N_ENA_PIN        17    // PWM Speed Control (LEDC Channel 0)
-#define ROVER_L298N_IN1_PIN        18    // Direction Pin 1
-#define ROVER_L298N_IN2_PIN        19    // Direction Pin 2
+#define ROVER_L298N_ENA_PIN 27
+#define ROVER_L298N_IN1_PIN 26
+#define ROVER_L298N_IN2_PIN 25
 
 // Right Motors (OUT3 & OUT4 in parallel)
 #define ROVER_L298N_IN3_PIN        21    // Direction Pin 3
